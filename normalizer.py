@@ -2,8 +2,8 @@ import pandas as pd
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from sklearn.decomposition import PCA
 
-# Cleans and normalizes input data
-# Compute growth, risk, capital efficiency, and strategic importance scores
+# Clean input data
+# Compute normalized growth, risk, capital efficiency, and strategic importance scores
 
 df = pd.read_csv('portfolio_mock.csv')
 
@@ -19,6 +19,7 @@ print(df[factors['risk']].corr())
 print(df[factors['capital_efficiency']].corr())
 print(df[factors['strategic_importance']].corr())
 
+weights_records = []
 final_scores_df = pd.DataFrame({'id': df['id']})
 
 for factor, cols in factors.items():
@@ -35,12 +36,25 @@ for factor, cols in factors.items():
 
     pca = PCA(n_components=1)
     composite_score = pca.fit_transform(scaled_data)
-    # weights = pca.components_[0]
+    weights = pca.components_[0]
+
+    for col_name, weight_value in zip(cols, weights):
+        weights_records.append(
+            {
+                'factor': factor,
+                'metric': col_name,
+                'pca_weight': round(weight_value, 4)
+            }
+        )
 
     min_max_scaler = MinMaxScaler(feature_range=(0, 10))
     scaled_scores = min_max_scaler.fit_transform(composite_score)
 
     final_scores_df[f'{factor}_score'] = scaled_scores.flatten().round(2)
 
-final_scores_df.to_csv('raw_scores.csv', index=False)
 print(final_scores_df.head())
+final_scores_df.to_csv('raw_scores.csv', index=False)
+
+weights_df = pd.DataFrame(weights_records)
+print(weights_df.head())
+weights_df.to_csv("pca_factor_weights.csv", index=False)
