@@ -1,11 +1,10 @@
+import numpy as np
 import pandas as pd
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from sklearn.decomposition import PCA
 
-# Clean input data
-# Compute normalized growth, risk, capital efficiency, and strategic importance scores
-
 df = pd.read_csv('portfolio_mock.csv')
+num_startups = len(df)
 
 factors = {
     'growth': ['yoy_revenue_growth', 'nrr', 'customer_growth_rate', 'tam_bn', 'pmf_indicator'],
@@ -18,6 +17,8 @@ print(df[factors['growth']].corr())
 print(df[factors['risk']].corr())
 print(df[factors['capital_efficiency']].corr())
 print(df[factors['strategic_importance']].corr())
+
+# Compute normalized growth, risk, capital efficiency, and strategic importance scores
 
 weights_records = []
 final_scores_df = pd.DataFrame({'id': df['id']})
@@ -58,3 +59,34 @@ final_scores_df.to_csv('raw_scores.csv', index=False)
 weights_df = pd.DataFrame(weights_records)
 print(weights_df.head())
 weights_df.to_csv("pca_factor_weights.csv", index=False)
+
+# Create semi-covariance matrix
+
+all_metric_cols = []
+for factor_name, cols_list in factors.items():
+    all_metric_cols.extend(cols_list)
+
+cov_raw_data = df[all_metric_cols].copy()
+
+for col in factors['risk']:
+    cov_raw_data[col] = cov_raw_data[col].max() - cov_raw_data[col]
+cov_raw_data['monthly_burn_rate_k'] = cov_raw_data['monthly_burn_rate_k'].max() - cov_raw_data['monthly_burn_rate_k']
+cov_raw_data['cac_payback_months'] = cov_raw_data['cac_payback_months'].max() - cov_raw_data['cac_payback_months']
+
+cov_scaler = StandardScaler()
+scaled_ops_data = cov_scaler.fit_transform(cov_raw_data)
+
+feature_means = np.mean(scaled_ops_data, axis=0)
+deviations = scaled_ops_data - feature_means
+downside_deviations = np.minimum(deviations, 0)
+
+semi_cov_matrix = np.dot(downside_deviations, downside_deviations.T) / (num_startups - 1)
+semi_cov_matrix += np.eye(num_startups) * 0.005
+
+semi_covariance_df = pd.DataFrame(
+    semi_cov_matrix, 
+    index=df['id'],   
+    columns=df['id']  
+)
+print(semi_covariance_df.head())
+semi_covariance_df.to_csv("portfolio_semi_covariance.csv", index=True)
