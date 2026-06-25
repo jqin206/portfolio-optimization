@@ -26,7 +26,8 @@ final_scores_df = pd.DataFrame({'id': df['id']})
 for factor, cols in factors.items():
     raw_data = df[cols].copy()
     if factor == 'risk':
-        for col in cols:
+        hazard_metrics = ['customer_churn', 'revenue_concentration_risk', 'market_regulatory_risk', 'execution_risk']
+        for col in hazard_metrics:
             raw_data[col] = raw_data[col].max() - raw_data[col]
     elif factor == 'capital_efficiency':
         raw_data['monthly_burn_rate_k'] = (raw_data['monthly_burn_rate_k'].max() - raw_data['monthly_burn_rate_k'])
@@ -38,6 +39,10 @@ for factor, cols in factors.items():
     pca = PCA(n_components=1)
     composite_score = pca.fit_transform(scaled_data)
     weights = pca.components_[0]
+
+    if np.mean(weights) < 0:
+        composite_score = -composite_score
+        weights = -weights
 
     for col_name, weight_value in zip(cols, weights):
         weights_records.append(
@@ -61,7 +66,6 @@ print(weights_df.head())
 weights_df.to_csv("pca_factor_weights.csv", index=False)
 
 # Create semi-covariance matrix
-
 all_metric_cols = []
 for factor_name, cols_list in factors.items():
     all_metric_cols.extend(cols_list)
