@@ -2,7 +2,6 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
 import numpy as np
-from adjustText import adjust_text
 
 df_scores = pd.read_csv('raw_scores.csv')
 
@@ -144,7 +143,7 @@ for (shape_cat, color_cat), group in df_plot.groupby(['Shape_Cat', 'Color_Cat'])
         label='_nolegend_'
     )
 
-ax.scatter([], [], color='none', label=r"$\bf{STRATEGY\ MANDATES}$")
+ax.scatter([], [], color='none', label=r"$\bf{STRATEGIES}$")
 for shape_name, marker_shape in markers.items():
     ax.scatter(
         [], [], 
@@ -171,7 +170,7 @@ ax.legend(
 )
 
 plt.tight_layout()
-plt.savefig("risk_return_tradeoff_frontier.png", dpi=300)
+plt.savefig("risk_return_tradeoff.png", dpi=300)
 plt.close()
 
 df = pd.read_csv("portfolio_simulation.csv", index_col='id')
