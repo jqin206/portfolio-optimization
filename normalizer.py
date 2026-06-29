@@ -3,7 +3,7 @@ import pandas as pd
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from sklearn.decomposition import PCA
 
-df = pd.read_csv('portfolio_mock.csv')
+df = pd.read_csv('mock_portfolio.csv')
 num_startups = len(df)
 
 factors = {
@@ -13,13 +13,7 @@ factors = {
     'strategic_importance': ['strategic_alignment', 'portfolio_synergies', 'market_positioning', 'future_fundraising_potential', 'competitive_differentiation']
 }
 
-print(df[factors['growth']].corr())
-print(df[factors['risk']].corr())
-print(df[factors['capital_efficiency']].corr())
-print(df[factors['strategic_importance']].corr())
-
 # Compute normalized growth, risk, capital efficiency, and strategic importance scores
-
 weights_records = []
 final_scores_df = pd.DataFrame({'id': df['id']})
 
@@ -59,7 +53,7 @@ for factor, cols in factors.items():
     final_scores_df[f'{factor}_score'] = scaled_scores.flatten().round(2)
 
 print(final_scores_df.head())
-final_scores_df.to_csv('raw_scores.csv', index=False)
+final_scores_df.to_csv('scores.csv', index=False)
 
 weights_df = pd.DataFrame(weights_records)
 print(weights_df.head())
@@ -93,4 +87,4 @@ semi_covariance_df = pd.DataFrame(
     columns=df['id']  
 )
 print(semi_covariance_df.head())
-semi_covariance_df.to_csv("portfolio_semi_covariance.csv", index=True)
+semi_covariance_df.to_csv('semicovariance.csv', index=True)

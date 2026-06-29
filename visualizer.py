@@ -3,7 +3,7 @@ import seaborn as sns
 import pandas as pd
 import numpy as np
 
-df_scores = pd.read_csv('raw_scores.csv')
+df_scores = pd.read_csv('scores.csv')
 
 metrics_cols = ['growth_score', 'risk_score', 'capital_efficiency_score', 'strategic_importance_score']
 display_cols = ['Growth Score', 'Risk Score', 'Capital Efficiency', 'Strategic Importance']
@@ -80,10 +80,10 @@ plt.savefig("startup_quadrant_bubble_chart.png", dpi=300)
 plt.close()
 
 expected_returns = (df_scores['growth_score'] * 0.4 + df_scores['capital_efficiency_score'] * 0.3) / 10.0 * 0.35
-cov_df = pd.read_csv('portfolio_semi_covariance.csv', index_col=0)
+cov_df = pd.read_csv('semicovariance.csv', index_col=0)
 cov_matrix = cov_df.to_numpy()
 
-df_sim = pd.read_csv('portfolio_simulation.csv')
+df_sim = pd.read_csv('simulation.csv')
 strategy_cols = [c for c in df_sim.columns if c != 'id']
 
 portfolio_data = []
@@ -173,10 +173,8 @@ plt.tight_layout()
 plt.savefig("risk_return_tradeoff.png", dpi=300)
 plt.close()
 
-df = pd.read_csv("portfolio_simulation.csv", index_col='id')
-
-expected_cols = [c for c in df.columns if 'expected' in c]
-heatmap_data = df[expected_cols]
+expected_cols = [c for c in df_sim.columns if 'expected' in c]
+heatmap_data = df_sim[expected_cols]
 
 plt.figure(figsize=(12, 8))
 sns.heatmap(heatmap_data, annot=True, fmt=".0f", cmap="YlGnBu", cbar_kws={'label': 'Allocated Capital ($)'})

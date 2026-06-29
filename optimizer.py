@@ -18,12 +18,12 @@ macro_conditions = {
 }
 
 macro_probabilities = {
-    'bull': 0.50,         # 50% chance of an expansionary market
-    'recession': 0.30,    # 30% chance of a market downturn
-    'stagflation': 0.20   # 20% chance of stagflation
+    'bull': 0.50,
+    'recession': 0.30,
+    'stagflation': 0.20
 }
 
-df = pd.read_csv('raw_scores.csv')
+df = pd.read_csv('scores.csv')
 num_startups = len(df)
 
 TOTAL_BUDGET = 10_000_000
@@ -42,9 +42,9 @@ strategy_risk_aversion = {
     'baseline': 2.0,
 }
 
-Sigma = pd.read_csv("portfolio_semi_covariance.csv", index_col=0).values
+Sigma = pd.read_csv("semicovariance.csv", index_col=0).values
 
-constraints = {"type": "eq", "fun": lambda x: np.sum(x) - 1.0}
+constraints = {'type': 'eq', 'fun': lambda x: np.sum(x) - 1.0}
 bounds = [(MIN_WEIGHT, MAX_WEIGHT) for _ in range(num_startups)]
 
 x_init = np.ones(num_startups) * (1.0 / num_startups)
@@ -98,19 +98,19 @@ for strat_name, strat_w in strategies.items():
         expected_utility_vector += prob * utility_vector
         
         res_ind = minimize(portfolio_objective, x_init, args=(Sigma, utility_vector, RISK_AVERSION),
-                           method="SLSQP", bounds=bounds, constraints=constraints)
+                           method='SLSQP', bounds=bounds, constraints=constraints)
         
         if res_ind.success:
             clean_dollars = enforce_tranches(res_ind.x, TOTAL_BUDGET, TRANCHE_SIZE, MAX_CHECK_SIZE)
             master_matrix[f"{strat_name}_in_{macro_name}"] = clean_dollars
 
     res_exp = minimize(portfolio_objective, x_init, args=(Sigma, expected_utility_vector, RISK_AVERSION),
-                       method="SLSQP", bounds=bounds, constraints=constraints)
+                       method='SLSQP', bounds=bounds, constraints=constraints)
     
     if res_exp.success:
         clean_expected_dollars = enforce_tranches(res_exp.x, TOTAL_BUDGET, TRANCHE_SIZE, MAX_CHECK_SIZE)
-        master_matrix[f"{strat_name}_expected"] = clean_expected_dollars
+        master_matrix[f'{strat_name}_expected'] = clean_expected_dollars
     else:
-        print(f"Warning: Expected allocation calculation failed for {strat_name}")
+        print(f'Warning: Expected allocation calculation failed for {strat_name}')
 
-master_matrix.to_csv("portfolio_simulation.csv", index=False)
+master_matrix.to_csv('simulation.csv', index=False)
