@@ -51,7 +51,7 @@ This pipeline computes growth, risk, capital efficiency, and strategic importanc
 | --- | --- | --- |
 | Growth | Measures revenue traction and expansion | `yoy_revenue_growth`, `nrr`, `customer_growth`, `tam_bn`, `pmf_indicator` |
 | Risk | Measures a startup's operational stability and vulnerability to market or execution shocks (higher score means lower risk) | `runway`, `customer_churn`, `revenue_concentration_risk`, `market_regulatory_risk`, `execution_risk` |
-| Capital efficiency | Measures how effectively a startup converts its cash flows in to enterprise value | | `monthly_burn_rate_k`, `ltv_cac`, `payback_months`, `rev_per_emp`, `gross_margin` |
+| Capital efficiency | Measures how effectively a startup converts its cash flows in to enterprise value | `monthly_burn_rate_k`, `ltv_cac`, `payback_months`, `rev_per_emp`, `gross_margin` |
 | Strategic importance | Measures a startup's systemic value to larger STEALTH portfolio | `strat_alignment`, `strat_synergies`, `strat_positioning`, `future_fundraising`, `competitive_diff` |
 
 ### 3. Portfolio optimizer (`optimizer.py`)
