@@ -3,9 +3,11 @@
 This pipeline computes growth, risk, capital efficiency, and strategic importance scores from raw startup data and utilizes these scores to produce the optimal capital allocation for the given portfolio.
 
 ## Allocation constraints
-Total capital pool: $10 million
-Minimum allocation per startup: $50,000
-Maximum allocation per startup: $1.5 million (15% of capital pool)
+**Total capital pool:** $10 million
+
+**Minimum allocation per startup:** $50,000
+
+**Maximum allocation per startup:** $1.5 million (15% of capital pool)
 
 ## Structure
 
@@ -13,7 +15,33 @@ Maximum allocation per startup: $1.5 million (15% of capital pool)
 - Produces a mock portfolio of 20 startups with the following data.
 - Output stored in `mock_portfolio.csv`.
 
-### 2. Data normalizer (`normalizer.py)
+| Field | Description |
+| --- | --- |
+| id | Unique identifier for each startup |
+| stage | Current stage of the startup (Seed, Series A, Series B) |
+| yoy_revenue_growth | Year-over-year revenue growth |
+| nrr | Net revenue retention |
+| customer_growth | Customer growth rate |
+| tam_bn | Total addressable market (billions) |
+| pmf_indicator | Product/market fit indicator (1-10) |
+| runway | Time (months) until startup runs out of cash |
+| customer_churn | Rate at which customers stop using the product |
+| revenue_concentration_risk | Risk from a disproportionate amount of sales coming from a single consumer |
+| market_regulatory_risk | Risk from changing regulations or policies (1-10) |
+| execution_risk | Risk that startup will fail to implement its intended plans (1-10) |
+| monthly_burn_rate_k | Net burn rate per month (thousands of dollars) |
+| ltv_cac | LTV to CAC ratio |
+| payback_months | CAC payback period (months) |
+| rev_per_emp | Revenue per employee |
+| gross_margin | Percentage of revenue remaining after subtracting COGS |
+| strat_alignment | Alignment with portfolio themes and long-term vision (1-10) |
+| strat_synergies | Synergies with other portfolio companies (1-10) |
+| strat_positioning | Strategic market positioning |
+| future_fundraising | Potential for future fundraising or partnership opportunities |
+| competitive_diff | Competitive differentiation |
+
+
+### 2. Data normalizer (`normalizer.py`)
 - Normalizes portfolio data to z-scores.
 - Calculates growth, risk, capital efficiency, and strategic importance scores from raw data using Principal Component Analysis (PCA).
 - Computes the portfolio's semi-covariance matrix.
