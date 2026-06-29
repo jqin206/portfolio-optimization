@@ -43,11 +43,12 @@ This pipeline computes growth, risk, capital efficiency, and strategic importanc
 
 ### 2. Data normalizer (`normalizer.py`)
 - Normalizes portfolio data to z-scores.
-- Calculates growth, risk, capital efficiency, and strategic importance scores (1-10) from raw data using Principal Component Analysis (PCA).
+- Calculates growth, risk, capital efficiency, and strategic importance composite scores (1-10) from raw data using Principal Component Analysis (PCA).
 - Computes the portfolio's semi-covariance matrix.
 - Outputs stored in `pca_factor_weights.csv`, `scores.csv`, and `semicovariance.csv`.
 
 | Score | Description | Fields |
+| --- | --- | --- |
 | Growth | Measures revenue traction and expansion | `yoy_revenue_growth`, `nrr`, `customer_growth`, `tam_bn`, `pmf_indicator` |
 | Risk | Measures a startup's operational stability and vulnerability to market or execution shocks (higher score means lower risk) | `runway`, `customer_churn`, `revenue_concentration_risk`, `market_regulatory_risk`, `execution_risk` |
 | Capital efficiency | Measures how effectively a startup converts its cash flows in to enterprise value | | `monthly_burn_rate_k`, `ltv_cac`, `payback_months`, `rev_per_emp`, `gross_margin` |
