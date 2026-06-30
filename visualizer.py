@@ -68,7 +68,7 @@ legend_markers = [ax2.scatter([], [], s=sz * 65, c='gray', alpha=0.5, edgecolors
 ax2.legend(
     legend_markers, 
     [f"{sz:.1f}" for sz in sizes], 
-    loc="upper left",
+    loc="upper right",
     title="Capital Efficiency",
     ncol=5,
     columnspacing=2,
@@ -79,6 +79,7 @@ plt.tight_layout()
 plt.savefig("startup_quadrant_bubble_chart.png", dpi=300)
 plt.close()
 
+df_scores['normalized_risk'] = 10.0 - df_scores['risk_score']
 expected_returns = (df_scores['growth_score'] * 0.4 + df_scores['capital_efficiency_score'] * 0.3) / 10.0 * 0.35
 cov_df = pd.read_csv('semicovariance.csv', index_col=0)
 cov_matrix = cov_df.to_numpy()
@@ -105,12 +106,11 @@ df_plot = pd.DataFrame(portfolio_data)
 fig, ax = plt.subplots(figsize=(10, 6.5))
 
 def get_shape_category(strat):
-    if 'GROWTH_RISK' in strat: return 'Growth Risk'
-    if 'RISK_EFF' in strat:    return 'Risk Efficiency'
-    if 'BASELINE' in strat:    return 'Baseline'
     if 'GROWTH' in strat:      return 'Growth'
-    if 'STRATEGIC' in strat:   return 'Strategic'
+    if 'RISK' in strat:    return 'Risk'
     if 'EFFICIENCY' in strat:   return 'Efficiency'
+    if 'STRATEGIC' in strat:   return 'Strategic'
+    if 'BASELINE' in strat:    return 'Baseline'
     return 'Other'
 
 def get_color_category(strat):
@@ -125,8 +125,7 @@ df_plot['Color_Cat'] = df_plot['Strategy'].apply(get_color_category)
 markers = {
     'Baseline': 'o',
     'Growth': '^',
-    'Growth Risk': 'X',
-    'Risk Efficiency': 'v',
+    'Risk': 'v',
     'Efficiency': 's',
     'Strategic': 'D',
 }

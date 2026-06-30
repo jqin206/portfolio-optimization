@@ -19,14 +19,14 @@ final_scores_df = pd.DataFrame({'id': df['id']})
 
 for factor, cols in factors.items():
     raw_data = df[cols].copy()
-    if factor == 'risk':
-        hazard_metrics = ['customer_churn', 'revenue_concentration_risk', 'market_regulatory_risk', 'execution_risk']
-        for col in hazard_metrics:
-            raw_data[col] = raw_data[col].max() - raw_data[col]
-    elif factor == 'capital_efficiency':
-        raw_data['monthly_burn_rate_k'] = (raw_data['monthly_burn_rate_k'].max() - raw_data['monthly_burn_rate_k'])
-        raw_data['cac_payback_months'] = (raw_data['cac_payback_months'].max() - raw_data['cac_payback_months'])
     
+    if factor == 'risk':
+        raw_data['runway_months'] = raw_data['runway_months'].max() - raw_data['runway_months']
+        
+    elif factor == 'capital_efficiency':
+        raw_data['monthly_burn_rate_k'] = raw_data['monthly_burn_rate_k'].max() - raw_data['monthly_burn_rate_k']
+        raw_data['cac_payback_months'] = raw_data['cac_payback_months'].max() - raw_data['cac_payback_months']
+
     scaler = StandardScaler()
     scaled_data = scaler.fit_transform(raw_data)
 
@@ -66,8 +66,7 @@ for factor_name, cols_list in factors.items():
 
 cov_raw_data = df[all_metric_cols].copy()
 
-for col in factors['risk']:
-    cov_raw_data[col] = cov_raw_data[col].max() - cov_raw_data[col]
+cov_raw_data['runway_months'] = cov_raw_data['runway_months'].max() - cov_raw_data['runway_months']
 cov_raw_data['monthly_burn_rate_k'] = cov_raw_data['monthly_burn_rate_k'].max() - cov_raw_data['monthly_burn_rate_k']
 cov_raw_data['cac_payback_months'] = cov_raw_data['cac_payback_months'].max() - cov_raw_data['cac_payback_months']
 

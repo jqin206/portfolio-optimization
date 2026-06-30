@@ -49,8 +49,8 @@ This pipeline computes growth, risk, capital efficiency, and strategic importanc
 
 | Score | Description | Fields |
 | --- | --- | --- |
-| Growth | Measures revenue traction and expansion | `yoy_revenue_growth`, `nrr`, `customer_growth`, `tam_bn`, `pmf_indicator` |
-| Risk | Measures a startup's operational stability and vulnerability to market or execution shocks (higher score means lower risk) | `runway`, `customer_churn`, `revenue_concentration_risk`, `market_regulatory_risk`, `execution_risk` |
+| Growth | Measures a startup's revenue traction and expansion | `yoy_revenue_growth`, `nrr`, `customer_growth`, `tam_bn`, `pmf_indicator` |
+| Risk | Measures probability of a startup failing | `runway`, `customer_churn`, `revenue_concentration_risk`, `market_regulatory_risk`, `execution_risk` |
 | Capital efficiency | Measures how effectively a startup converts its cash flows into enterprise value | `monthly_burn_rate_k`, `ltv_cac`, `payback_months`, `rev_per_emp`, `gross_margin` |
 | Strategic importance | Measures a startup's systemic value to larger STEALTH portfolio | `strat_alignment`, `strat_synergies`, `strat_positioning`, `future_fundraising`, `competitive_diff` |
 
@@ -60,12 +60,11 @@ This pipeline computes growth, risk, capital efficiency, and strategic importanc
 
 | Strategy | Description | 
 | --- | --- | 
-| `growth` | Growth focused: maximize capital allocation into rapidly expanding startups |
-| `growth_risk` | Growth-risk balanced: pair highly speculative, upside bets with stable, low-risk startups |
-| `risk_eff` | Risk mitigation and capital efficiency balanced: max out allocations on the safest, most self-sustaining startups |
-| `efficiency` | Capital efficiency focused: fund startups that can survive on their own operational revenue |
-| `strategic` | Strategic importance focused: prioritize startups building core infrastructure, proprietary intellectual property, or critical components that support a broader ecosystem |
-| `baseline` | Balanced: equal weights across all composite metrics |
+| `growth` | Growth focused: concentrates 70% of weight into rapidly expanding startups. |
+| `risk` | Risk-minimizing: directs 70% of focus toward avoiding vulnerable startups. |
+| `efficiency` | Capital efficiency focused: fund startups that can survive on their own operational revenue. |
+| `strategic` | Strategic importance focused: prioritize startups building core infrastructure that support a broader ecosystem. |
+| `baseline` | Balanced: equal weights across all composite metrics. |
 
 
 ### 4. Data visualizer (`visualizer.py`)

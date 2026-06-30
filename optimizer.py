@@ -3,12 +3,11 @@ import pandas as pd
 from scipy.optimize import minimize
 
 strategies = {
-    'growth': {'growth': 0.60, 'risk': 0.10, 'capital_efficiency': 0.10, 'strategic_importance': 0.20},
-    'risk_eff': {'growth': 0.10, 'risk': 0.40, 'capital_efficiency': 0.40, 'strategic_importance': 0.10},
-    'strategic': {'growth': 0.15, 'risk': 0.15, 'capital_efficiency': 0.10, 'strategic_importance': 0.60},
-    'growth_risk': {'growth': 0.45, 'risk': 0.45, 'capital_efficiency': 0.05, 'strategic_importance': 0.05},
-    'efficiency': {'growth': 0.10, 'risk': 0.15, 'capital_efficiency': 0.65, 'strategic_importance': 0.10},
-    'baseline': {'growth': 0.30, 'risk': 0.20, 'capital_efficiency': 0.20, 'strategic_importance': 0.30},
+    'growth': {'growth': 0.7, 'risk': 0.1, 'capital_efficiency': 0.1, 'strategic_importance': 0.1},
+    'risk': {'growth': 0.1, 'risk': 0.7, 'capital_efficiency': 0.1, 'strategic_importance': 0.1},
+    'efficiency': {'growth': 0.1, 'risk': 0.1, 'capital_efficiency': 0.7, 'strategic_importance': 0.1},
+    'strategic': {'growth': 0.1, 'risk': 0.1, 'capital_efficiency': 0.1, 'strategic_importance': 0.7},
+    'baseline': {'growth': 0.25, 'risk': 0.25, 'capital_efficiency': 0.25, 'strategic_importance': 0.25},
 }
 
 macro_conditions = {
@@ -34,12 +33,11 @@ TRANCHE_SIZE = 50_000
 MAX_CHECK_SIZE = MAX_WEIGHT * TOTAL_BUDGET
 
 strategy_risk_aversion = {
-    'growth': 1.0,
-    'risk_eff': 5.0,
-    'strategic': 2.0,
-    'growth_risk': 3.5,
-    'efficiency': 4.0,
-    'baseline': 2.0,
+    'growth': 0.5,
+    'risk': 5.0,
+    'efficiency': 1.5,
+    'strategic': 3.0,
+    'baseline': 2.5
 }
 
 Sigma = pd.read_csv("semicovariance.csv", index_col=0).values
