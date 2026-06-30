@@ -34,9 +34,27 @@ for factor, cols in factors.items():
     composite_score = pca.fit_transform(scaled_data)
     weights = pca.components_[0]
 
-    if np.mean(weights) < 0:
-        composite_score = -composite_score
-        weights = -weights
+    weight_map = dict(zip(cols, weights))
+
+    if factor == 'risk':
+        if weight_map['customer_churn'] < 0:
+            composite_score = -composite_score
+            weights = -weights
+            
+    elif factor == 'growth':
+        if weight_map['yoy_revenue_growth'] < 0:
+            composite_score = -composite_score
+            weights = -weights
+            
+    elif factor == 'capital_efficiency':
+        if weight_map['ltv_cac'] < 0:
+            composite_score = -composite_score
+            weights = -weights
+            
+    else: # strategic_importance
+        if np.mean(weights) < 0:
+            composite_score = -composite_score
+            weights = -weights
 
     for col_name, weight_value in zip(cols, weights):
         weights_records.append(

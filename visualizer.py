@@ -68,7 +68,7 @@ legend_markers = [ax2.scatter([], [], s=sz * 65, c='gray', alpha=0.5, edgecolors
 ax2.legend(
     legend_markers, 
     [f"{sz:.1f}" for sz in sizes], 
-    loc="upper right",
+    loc="upper left",
     title="Capital Efficiency",
     ncol=5,
     columnspacing=2,
@@ -79,48 +79,57 @@ plt.tight_layout()
 plt.savefig("startup_quadrant_bubble_chart.png", dpi=300)
 plt.close()
 
-df_scores['normalized_risk'] = 10.0 - df_scores['risk_score']
-expected_returns = (df_scores['growth_score'] * 0.4 + df_scores['capital_efficiency_score'] * 0.3) / 10.0 * 0.35
-cov_df = pd.read_csv('semicovariance.csv', index_col=0)
-cov_matrix = cov_df.to_numpy()
+df_raw = pd.read_csv('mock_portfolio.csv') # Original metrics (yoy_revenue_growth, etc.)
+cov_matrix = pd.read_csv('semicovariance.csv', index_col=0).values
+df_sim = pd.read_csv('simulation.csv')       # Strategy allocations
 
-df_sim = pd.read_csv('simulation.csv')
+# 2. Extract and Process Strategy Portfolios
 strategy_cols = [c for c in df_sim.columns if c != 'id']
-
 portfolio_data = []
 
-for strategy in strategy_cols:
-    allocations = df_sim[strategy].values
+for col in strategy_cols:
+    allocations = df_sim[col].values
     weights = allocations / np.sum(allocations)
     
-    p_return = np.dot(weights, expected_returns)
+    # Calculate portfolio risk natively from the semicovariance matrix
     p_risk = np.sqrt(np.dot(weights.T, np.dot(cov_matrix, weights)))
     
+    # Method 3: Bottom-up real financial return calculation
+    # We map the weights directly to the raw YoY Revenue Growth metric
+    raw_growth = df_raw['yoy_revenue_growth'].values
+    p_return_percentage = np.dot(weights, raw_growth)
+    
+    # Categorize market conditions for clean coloring
+    if '_in_bull' in col:
+        color_cat = 'Bull Market'
+    elif '_in_recession' in col:
+        color_cat = 'Recession'
+    elif '_in_stagflation' in col:
+        color_cat = 'Stagflation'
+    elif '_expected' in col:
+        color_cat = 'Expected Baseline'
+        
+    strategy_clean_name = col.split('_in_')[0].split('_expected')[0].upper()
+    
+    # Define shapes matching your strategic mandates
+    if 'GROWTH' in strategy_clean_name:      shape_cat = 'Growth'
+    elif 'RISK' in strategy_clean_name:       shape_cat = 'Risk'
+    elif 'EFFICIENCY' in strategy_clean_name: shape_cat = 'Efficiency'
+    elif 'STRATEGIC' in strategy_clean_name:  shape_cat = 'Strategic'
+    else:                                     shape_cat = 'Baseline'
+    
     portfolio_data.append({
-        'Strategy': strategy.replace('_expected', '').upper(),
+        'Strategy': strategy_clean_name,
         'Risk': p_risk,
-        'Return': p_return
+        'Return_Pct': p_return_percentage,
+        'Shape_Cat': shape_cat,
+        'Color_Cat': color_cat
     })
 
 df_plot = pd.DataFrame(portfolio_data)
+
+# 3. Plotting Setup
 fig, ax = plt.subplots(figsize=(10, 6.5))
-
-def get_shape_category(strat):
-    if 'GROWTH' in strat:      return 'Growth'
-    if 'RISK' in strat:    return 'Risk'
-    if 'EFFICIENCY' in strat:   return 'Efficiency'
-    if 'STRATEGIC' in strat:   return 'Strategic'
-    if 'BASELINE' in strat:    return 'Baseline'
-    return 'Other'
-
-def get_color_category(strat):
-    if 'BULL' in strat: return 'Bull Market'
-    if 'RECESSION' in strat: return 'Recession'
-    if 'STAGFLATION' in strat: return 'Stagflation'
-    return 'Expected Baseline'
-
-df_plot['Shape_Cat'] = df_plot['Strategy'].apply(get_shape_category)
-df_plot['Color_Cat'] = df_plot['Strategy'].apply(get_color_category)
 
 markers = {
     'Baseline': 'o',
@@ -129,47 +138,56 @@ markers = {
     'Efficiency': 's',
     'Strategic': 'D',
 }
-colors = {'Bull Market': 'gold', 'Recession': 'green', 'Stagflation': 'blue', 'Expected Baseline': 'purple'}
+colors = {
+    'Bull Market': 'gold', 
+    'Recession': 'green', 
+    'Stagflation': 'blue', 
+    'Expected Baseline': 'purple'
+}
 
+np.random.seed(42)
+
+x_jitter_range = 0.003  # Small shift on the Risk axis
+y_jitter_range = 0.015  # Small shift on the Return decimal axis
+
+# Group and plot explicitly using your valid loop classifications
 for (shape_cat, color_cat), group in df_plot.groupby(['Shape_Cat', 'Color_Cat']):
+    
+    # Generate random noise arrays matching the size of the current group
+    x_noise = np.random.uniform(-x_jitter_range, x_jitter_range, size=len(group))
+    y_noise = np.random.uniform(-y_jitter_range, y_jitter_range, size=len(group))
+    
     ax.scatter(
-        group['Risk'], 
-        group['Return'], 
+        group['Risk'] + x_noise,       # Apply jitter to X
+        group['Return_Pct'] + y_noise, # Apply jitter to Y
         marker=markers[shape_cat], 
         c=colors[color_cat], 
         s=150, 
         edgecolors='k',
+        alpha=0.85, 
         label='_nolegend_'
     )
 
+# 4. Generate Professional Visual Legends
 ax.scatter([], [], color='none', label=r"$\bf{STRATEGIES}$")
 for shape_name, marker_shape in markers.items():
-    ax.scatter(
-        [], [], 
-        marker=marker_shape, 
-        color='gray',
-        edgecolors='k', 
-        s=100, 
-        label=shape_name
-    )
+    ax.scatter([], [], marker=marker_shape, color='gray', edgecolors='k', s=100, label=shape_name)
 
 ax.scatter([], [], color='none', label="") 
 
 ax.scatter([], [], color='none', label=r"$\bf{MARKET\ CONDITIONS}$")
 for regime, color_name in colors.items():
-    if regime != 'Expected Baseline':
-        ax.scatter([], [], marker='o', color=color_name, edgecolors='k', s=100, label=regime)
+    ax.scatter([], [], marker='o', color=color_name, edgecolors='k', s=100, label=regime)
 
-ax.legend(
-    loc="lower right", 
-    frameon=True, 
-    edgecolor="lightgray", 
-    fontsize=9,
-    labelspacing=0.5
-)
+ax.legend(loc="upper left", frameon=True, edgecolor="lightgray", fontsize=9, labelspacing=0.5)
+
+# Labels referencing explicit financial units
+ax.set_xlabel("Downside Portfolio Risk")
+ax.set_ylabel("Portfolio Weighted Average YoY Revenue Growth")
+ax.set_title("Portfolio Risk vs. Return", fontsize=12, fontweight='bold')
 
 plt.tight_layout()
-plt.savefig("risk_return_tradeoff.png", dpi=300)
+plt.savefig("risk_vs_return.png", dpi=300)
 plt.close()
 
 expected_cols = [c for c in df_sim.columns if 'expected' in c]

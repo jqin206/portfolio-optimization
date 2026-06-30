@@ -51,8 +51,8 @@ master_matrix = pd.DataFrame({'id': df['id']})
 
 def portfolio_objective(x, Sigma, utility_vector, risk_aversion):
     portfolio_variance = np.dot(x.T, np.dot(Sigma, x))
-    portfolio_return = np.dot(np.log(utility_vector + 1), x)
-    return portfolio_variance - risk_aversion * portfolio_return
+    portfolio_utility = np.dot(utility_vector, x)
+    return -portfolio_utility + (risk_aversion * portfolio_variance)
 
 def get_blended_utility(strat_w, macro_m, df_source):
     combined_raw = {factor: strat_w[factor] * macro_m[factor] for factor in strat_w}
@@ -61,7 +61,7 @@ def get_blended_utility(strat_w, macro_m, df_source):
     
     return (
         (df_source['growth_score'] * blended_weights['growth'])
-        + (df_source['risk_score'] * blended_weights['risk'])
+        - (df_source['risk_score'] * blended_weights['risk'])
         + (df_source['capital_efficiency_score'] * blended_weights['capital_efficiency'])
         + (df_source['strategic_importance_score'] * blended_weights['strategic_importance'])
     ).values

@@ -1,9 +1,9 @@
 factor,metric,pca_weight
-growth,yoy_revenue_growth,-0.509
-growth,nrr,0.4662
-growth,customer_growth_rate,-0.5034
-growth,tam_bn,0.4492
-growth,pmf_indicator,0.2614
+growth,yoy_revenue_growth,0.509
+growth,nrr,-0.4662
+growth,customer_growth_rate,0.5034
+growth,tam_bn,-0.4492
+growth,pmf_indicator,-0.2614
 risk,runway_months,0.4717
 risk,customer_churn,0.4998
 risk,revenue_concentration_risk,0.555
