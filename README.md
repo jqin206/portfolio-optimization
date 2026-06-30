@@ -68,5 +68,6 @@ This pipeline computes growth, risk, capital efficiency, and strategic importanc
 
 
 ### 4. Data visualizer (`visualizer.py`)
-- Creates heatmaps for the startup profiles (`startup_raw_metrics_heatmap.png`) and different allocation scenarios (`portfolio_allocation_heatmap.png`).
-- Visualizes the risk vs. return tradeoff for each allocation strategy in different market conditions (`startup_quadrant_bubble_chart.png`).
+- Creates heatmaps for the startup composite scores (`startup_raw_metrics_heatmap.png`) and different allocation scenarios (`portfolio_allocation_heatmap.png`).
+- Create a bubble chart to visualize the startup composite scores (`startup_quadrant_bubble_chart.png`).
+- Visualizes the risk vs. return tradeoff for each allocation strategy in different market conditions (`risk_vs_return.png`).

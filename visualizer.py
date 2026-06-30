@@ -79,11 +79,10 @@ plt.tight_layout()
 plt.savefig("startup_quadrant_bubble_chart.png", dpi=300)
 plt.close()
 
-df_raw = pd.read_csv('mock_portfolio.csv') # Original metrics (yoy_revenue_growth, etc.)
+df_raw = pd.read_csv('mock_portfolio.csv')
 cov_matrix = pd.read_csv('semicovariance.csv', index_col=0).values
-df_sim = pd.read_csv('simulation.csv')       # Strategy allocations
+df_sim = pd.read_csv('simulation.csv')
 
-# 2. Extract and Process Strategy Portfolios
 strategy_cols = [c for c in df_sim.columns if c != 'id']
 portfolio_data = []
 
@@ -91,15 +90,11 @@ for col in strategy_cols:
     allocations = df_sim[col].values
     weights = allocations / np.sum(allocations)
     
-    # Calculate portfolio risk natively from the semicovariance matrix
     p_risk = np.sqrt(np.dot(weights.T, np.dot(cov_matrix, weights)))
     
-    # Method 3: Bottom-up real financial return calculation
-    # We map the weights directly to the raw YoY Revenue Growth metric
     raw_growth = df_raw['yoy_revenue_growth'].values
     p_return_percentage = np.dot(weights, raw_growth)
     
-    # Categorize market conditions for clean coloring
     if '_in_bull' in col:
         color_cat = 'Bull Market'
     elif '_in_recession' in col:
@@ -109,17 +104,16 @@ for col in strategy_cols:
     elif '_expected' in col:
         color_cat = 'Expected Baseline'
         
-    strategy_clean_name = col.split('_in_')[0].split('_expected')[0].upper()
+    strat_name = col.split('_in_')[0].split('_expected')[0].upper()
     
-    # Define shapes matching your strategic mandates
-    if 'GROWTH' in strategy_clean_name:      shape_cat = 'Growth'
-    elif 'RISK' in strategy_clean_name:       shape_cat = 'Risk'
-    elif 'EFFICIENCY' in strategy_clean_name: shape_cat = 'Efficiency'
-    elif 'STRATEGIC' in strategy_clean_name:  shape_cat = 'Strategic'
+    if 'GROWTH' in strat_name:      shape_cat = 'Growth'
+    elif 'RISK' in strat_name:       shape_cat = 'Risk'
+    elif 'EFFICIENCY' in strat_name: shape_cat = 'Efficiency'
+    elif 'STRATEGIC' in strat_name:  shape_cat = 'Strategic'
     else:                                     shape_cat = 'Baseline'
     
     portfolio_data.append({
-        'Strategy': strategy_clean_name,
+        'Strategy': strat_name,
         'Risk': p_risk,
         'Return_Pct': p_return_percentage,
         'Shape_Cat': shape_cat,
@@ -128,7 +122,6 @@ for col in strategy_cols:
 
 df_plot = pd.DataFrame(portfolio_data)
 
-# 3. Plotting Setup
 fig, ax = plt.subplots(figsize=(10, 6.5))
 
 markers = {
@@ -147,10 +140,9 @@ colors = {
 
 np.random.seed(42)
 
-x_jitter_range = 0.003  # Small shift on the Risk axis
-y_jitter_range = 0.015  # Small shift on the Return decimal axis
+x_jitter_range = 0.003
+y_jitter_range = 0.015
 
-# Group and plot explicitly using your valid loop classifications
 for (shape_cat, color_cat), group in df_plot.groupby(['Shape_Cat', 'Color_Cat']):
     
     # Generate random noise arrays matching the size of the current group
@@ -168,7 +160,6 @@ for (shape_cat, color_cat), group in df_plot.groupby(['Shape_Cat', 'Color_Cat'])
         label='_nolegend_'
     )
 
-# 4. Generate Professional Visual Legends
 ax.scatter([], [], color='none', label=r"$\bf{STRATEGIES}$")
 for shape_name, marker_shape in markers.items():
     ax.scatter([], [], marker=marker_shape, color='gray', edgecolors='k', s=100, label=shape_name)
@@ -181,7 +172,6 @@ for regime, color_name in colors.items():
 
 ax.legend(loc="upper left", frameon=True, edgecolor="lightgray", fontsize=9, labelspacing=0.5)
 
-# Labels referencing explicit financial units
 ax.set_xlabel("Downside Portfolio Risk")
 ax.set_ylabel("Portfolio Weighted Average YoY Revenue Growth")
 ax.set_title("Portfolio Risk vs. Return", fontsize=12, fontweight='bold')
