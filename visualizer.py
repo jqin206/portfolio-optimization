@@ -31,6 +31,7 @@ plt.tight_layout()
 plt.savefig("startup_raw_metrics_heatmap.png", dpi=300)
 plt.close()
 
+
 fig2, ax2 = plt.subplots(figsize=(11, 8))
 
 scatter = ax2.scatter(
@@ -79,9 +80,17 @@ plt.tight_layout()
 plt.savefig("startup_quadrant_bubble_chart.png", dpi=300)
 plt.close()
 
+
 df_raw = pd.read_csv('mock_portfolio.csv')
 cov_matrix = pd.read_csv('semicovariance.csv', index_col=0).values
 df_sim = pd.read_csv('simulation.csv')
+
+modifiers = {
+    'Bull Market':       {'growth_mult': 1.5, 'risk_mult': 0.6},
+    'Recession':         {'growth_mult': 0.6, 'risk_mult': 1.6},
+    'Stagflation':       {'growth_mult': 0.5, 'risk_mult': 1.4},
+    'Expected Baseline': {'growth_mult': 1.0, 'risk_mult': 1.0}
+}
 
 strategy_cols = [c for c in df_sim.columns if c != 'id']
 portfolio_data = []
@@ -90,27 +99,27 @@ for col in strategy_cols:
     allocations = df_sim[col].values
     weights = allocations / np.sum(allocations)
     
-    p_risk = np.sqrt(np.dot(weights.T, np.dot(cov_matrix, weights)))
+    if '_in_bull' in col:         color_cat = 'Bull Market'
+    elif '_in_recession' in col:  color_cat = 'Recession'
+    elif '_in_stagflation' in col: color_cat = 'Stagflation'
+    elif '_expected' in col:      color_cat = 'Expected Baseline'
+        
+    mod = modifiers[color_cat]
+    
+    base_risk = np.sqrt(np.dot(weights.T, np.dot(cov_matrix, weights)))
+    p_risk = base_risk * mod['risk_mult']
     
     raw_growth = df_raw['yoy_revenue_growth'].values
-    p_return_percentage = np.dot(weights, raw_growth)
+    scaled_growth = raw_growth * mod['growth_mult']
+    p_return_percentage = np.dot(weights, scaled_growth)
     
-    if '_in_bull' in col:
-        color_cat = 'Bull Market'
-    elif '_in_recession' in col:
-        color_cat = 'Recession'
-    elif '_in_stagflation' in col:
-        color_cat = 'Stagflation'
-    elif '_expected' in col:
-        color_cat = 'Expected Baseline'
-        
     strat_name = col.split('_in_')[0].split('_expected')[0].upper()
     
-    if 'GROWTH' in strat_name:      shape_cat = 'Growth'
-    elif 'RISK' in strat_name:       shape_cat = 'Risk'
+    if 'GROWTH' in strat_name:       shape_cat = 'Growth'
+    elif 'RISK' in strat_name:        shape_cat = 'Risk'
     elif 'EFFICIENCY' in strat_name: shape_cat = 'Efficiency'
     elif 'STRATEGIC' in strat_name:  shape_cat = 'Strategic'
-    else:                                     shape_cat = 'Baseline'
+    else:                             shape_cat = 'Baseline'
     
     portfolio_data.append({
         'Strategy': strat_name,
@@ -120,9 +129,7 @@ for col in strategy_cols:
         'Color_Cat': color_cat
     })
 
-df_plot = pd.DataFrame(portfolio_data)
-
-fig, ax = plt.subplots(figsize=(10, 6.5))
+df_plot_all = pd.DataFrame(portfolio_data)
 
 markers = {
     'Baseline': 'o',
@@ -138,58 +145,79 @@ colors = {
     'Expected Baseline': 'purple'
 }
 
+fig, ax = plt.subplots(figsize=(11, 7.5))
 np.random.seed(42)
-
 x_jitter_range = 0.003
 y_jitter_range = 0.015
 
-for (shape_cat, color_cat), group in df_plot.groupby(['Shape_Cat', 'Color_Cat']):
-    
-    # Generate random noise arrays matching the size of the current group
+for (shape_cat, color_cat), group in df_plot_all.groupby(['Shape_Cat', 'Color_Cat']):
     x_noise = np.random.uniform(-x_jitter_range, x_jitter_range, size=len(group))
     y_noise = np.random.uniform(-y_jitter_range, y_jitter_range, size=len(group))
     
     ax.scatter(
-        group['Risk'] + x_noise,       # Apply jitter to X
-        group['Return_Pct'] + y_noise, # Apply jitter to Y
+        group['Risk'] + x_noise,       
+        group['Return_Pct'] + y_noise, 
         marker=markers[shape_cat], 
         c=colors[color_cat], 
-        s=150, 
+        s=140, 
         edgecolors='k',
         alpha=0.85, 
         label='_nolegend_'
     )
 
-ax.scatter([], [], color='none', label=r"$\bf{STRATEGIES}$")
-for shape_name, marker_shape in markers.items():
-    ax.scatter([], [], marker=marker_shape, color='gray', edgecolors='k', s=100, label=shape_name)
+ax.scatter([], [], color='none', label=r'$\bf{STRATEGIES}$')
+for strategy, marker_shape in markers.items():
+    ax.scatter(
+        [], [], 
+        marker=marker_shape, 
+        c='gray',
+        edgecolors='k', 
+        s=120, 
+        label=strategy
+    )
 
-ax.scatter([], [], color='none', label="") 
+ax.scatter([], [], color='none', label=r'$\bf{MARKET\ CONDITIONS}$')
+for regime, regime_color in colors.items():
+    ax.scatter(
+        [], [], 
+        marker='o',
+        c=regime_color, 
+        edgecolors='k', 
+        s=120, 
+        label=regime
+    )
 
-ax.scatter([], [], color='none', label=r"$\bf{MARKET\ CONDITIONS}$")
-for regime, color_name in colors.items():
-    ax.scatter([], [], marker='o', color=color_name, edgecolors='k', s=100, label=regime)
+ax.legend(
+    loc="upper right", 
+    frameon=True, 
+    edgecolor="lightgray", 
+    fontsize=10, 
+    labelspacing=0.4
+)
 
-ax.legend(loc="upper left", frameon=True, edgecolor="lightgray", fontsize=9, labelspacing=0.5)
-
-ax.set_xlabel("Downside Portfolio Risk")
-ax.set_ylabel("Portfolio Weighted Average YoY Revenue Growth")
-ax.set_title("Portfolio Risk vs. Return", fontsize=12, fontweight='bold')
+ax.set_xlabel("Downside Portfolio Risk", fontweight='bold')
+ax.set_ylabel("Portfolio Return (Weighted Average YoY Revenue Growth)", fontweight='bold')
+ax.set_title("Portfolio Risk vs. Return", fontsize=13, fontweight='bold', pad=15)
+ax.grid(True, linestyle='--', alpha=0.3)
 
 plt.tight_layout()
 plt.savefig("risk_vs_return.png", dpi=300)
 plt.close()
 
+
 expected_cols = [c for c in df_sim.columns if 'expected' in c]
-heatmap_data = df_sim[expected_cols]
+df_sim_indexed = df_sim.set_index('id')
+heatmap_data = round(df_sim[expected_cols] / 10_000_000.0, 3)
+y_labels = [c.replace('_expected', '').strip() for c in heatmap_data.columns]
+heatmap_data.columns = y_labels
 
-plt.figure(figsize=(12, 8))
-sns.heatmap(heatmap_data, annot=True, fmt=".0f", cmap="YlGnBu", cbar_kws={'label': 'Allocated Capital ($)'})
-plt.xticks(rotation=45, ha='right', rotation_mode='anchor')
+plt.figure(figsize=(18, 5))
+sns.heatmap(heatmap_data.T, annot=True, fmt=".3f", cmap="YlGnBu", cbar_kws={'label': 'Allocated Capital ($)'}, square=True)
 
-plt.title("Expected Portfolio Capital Allocation By Startup")
-plt.ylabel("Startup ID")
-plt.xlabel("Strategies")
+plt.title("Expected Portfolio Capital Allocation", fontsize=14, fontweight='bold', pad=15)
+plt.xlabel("Startup ID", fontsize=12, labelpad=10)
+plt.ylabel("Strategies", fontsize=12)
+
 plt.tight_layout()
 plt.savefig("portfolio_allocation_heatmap.png", dpi=300)
 plt.close()
