@@ -87,9 +87,9 @@ df_sim = pd.read_csv('simulation.csv')
 
 modifiers = {
     'Bull Market':       {'growth_mult': 1.5, 'risk_mult': 0.6},
-    'Recession':         {'growth_mult': 0.6, 'risk_mult': 1.6},
-    'Stagflation':       {'growth_mult': 0.5, 'risk_mult': 1.4},
-    'Expected Baseline': {'growth_mult': 1.0, 'risk_mult': 1.0}
+    'Recession':         {'growth_mult': 0.5, 'risk_mult': 1.6},
+    'Stagflation':       {'growth_mult': 0.8, 'risk_mult': 1.0},
+    'Neutral Market':    {'growth_mult': 1.0, 'risk_mult': 1.0}
 }
 
 strategy_cols = [c for c in df_sim.columns if c != 'id']
@@ -102,7 +102,7 @@ for col in strategy_cols:
     if '_in_bull' in col:         color_cat = 'Bull Market'
     elif '_in_recession' in col:  color_cat = 'Recession'
     elif '_in_stagflation' in col: color_cat = 'Stagflation'
-    elif '_expected' in col:      color_cat = 'Expected Baseline'
+    elif '_in_neutral' in col:      color_cat = 'Neutral Market'
         
     mod = modifiers[color_cat]
     
@@ -142,13 +142,77 @@ colors = {
     'Bull Market': 'gold', 
     'Recession': 'green', 
     'Stagflation': 'blue', 
-    'Expected Baseline': 'purple'
+    'Neutral Market': 'purple'
 }
 
 fig, ax = plt.subplots(figsize=(11, 7.5))
 np.random.seed(42)
 x_jitter_range = 0.003
 y_jitter_range = 0.015
+
+for regime_name, regime_color in colors.items():
+    
+    df_plot = df_plot_all[df_plot_all['Color_Cat'] == regime_name]
+    
+    if df_plot.empty:
+        continue
+        
+    fig, ax = plt.subplots(figsize=(10, 6.5))
+    
+    np.random.seed(42)
+    
+    for (shape_cat, color_cat), group in df_plot.groupby(['Shape_Cat', 'Color_Cat']):
+        x_noise = np.random.uniform(-x_jitter_range, x_jitter_range, size=len(group))
+        y_noise = np.random.uniform(-y_jitter_range, y_jitter_range, size=len(group))
+        
+        ax.scatter(
+            group['Risk'] + x_noise,       
+            group['Return_Pct'] + y_noise, 
+            marker=markers[shape_cat], 
+            c=regime_color, 
+            s=150, 
+            edgecolors='k',
+            alpha=0.85, 
+            label='_nolegend_'
+        )
+    
+    # Render Plain Text Legend Headers
+    ax.scatter([], [], color='none', label=f"STRATEGIES")
+    for shape_name, marker_shape in markers.items():
+        if shape_name in df_plot['Shape_Cat'].values:
+            ax.scatter(
+                [], [], 
+                marker=marker_shape, 
+                color=regime_color, 
+                edgecolors='k', 
+                s=100, 
+                label=shape_name
+            )
+    
+    # Handle Legend Positioning
+    if regime_name == 'Recession':
+        target_loc = "upper right"
+    else:
+        target_loc = "upper left"
+        
+    leg = ax.legend(loc=target_loc, frameon=True, edgecolor="lightgray", fontsize=9, labelspacing=0.5)
+
+    if leg.get_texts():
+        leg.get_texts()[0].set_weight('bold')
+    
+    # Labels and Titles
+    ax.set_xlabel("Downside Portfolio Risk")
+    ax.set_ylabel("Portfolio Return (Weighted Average YoY Revenue Growth)")
+    ax.set_title(f"Portfolio Risk vs. Return ({regime_name})", fontsize=12, fontweight='bold')
+    
+    plt.tight_layout()
+    
+    # Save Outputs
+    file_suffix = regime_name.lower().replace(' ', '_')
+    plt.savefig(f"regime_graphs/risk_vs_return_{file_suffix}.png", dpi=300)
+    plt.close()
+
+fig, ax = plt.subplots(figsize=(11, 7.5))
 
 for (shape_cat, color_cat), group in df_plot_all.groupby(['Shape_Cat', 'Color_Cat']):
     x_noise = np.random.uniform(-x_jitter_range, x_jitter_range, size=len(group))
@@ -205,19 +269,19 @@ plt.savefig("risk_vs_return.png", dpi=300)
 plt.close()
 
 
-expected_cols = [c for c in df_sim.columns if 'expected' in c]
+neutral_cols = [c for c in df_sim.columns if 'neutral' in c]
 df_sim_indexed = df_sim.set_index('id')
-heatmap_data = round(df_sim[expected_cols] / 10_000_000.0, 3)
-y_labels = [c.replace('_expected', '').strip() for c in heatmap_data.columns]
+heatmap_data = round(df_sim[neutral_cols] / 10_000_000.0, 3)
+y_labels = [c.replace('_in_neutral', '').strip() for c in heatmap_data.columns]
 heatmap_data.columns = y_labels
 
 plt.figure(figsize=(18, 5))
 sns.heatmap(heatmap_data.T, annot=True, fmt=".3f", cmap="YlGnBu", cbar_kws={'label': 'Allocated Capital ($)'}, square=True)
 
-plt.title("Expected Portfolio Capital Allocation", fontsize=14, fontweight='bold', pad=15)
+plt.title("Portfolio Capital Allocation in Neutral Market", fontsize=14, fontweight='bold', pad=15)
 plt.xlabel("Startup ID", fontsize=12, labelpad=10)
 plt.ylabel("Strategies", fontsize=12)
 
 plt.tight_layout()
-plt.savefig("portfolio_allocation_heatmap.png", dpi=300)
+plt.savefig("regime_graphs/portfolio_allocation_neutral_heatmap.png", dpi=300)
 plt.close()

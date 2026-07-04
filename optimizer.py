@@ -11,15 +11,10 @@ strategies = {
 }
 
 macro_conditions = {
+    'neutral': {'growth': 1.0, 'risk': 1.0, 'capital_efficiency': 1.0, 'strategic_importance': 1.0},
     'bull': {'growth': 1.5, 'risk': 0.6, 'capital_efficiency': 0.8, 'strategic_importance': 1.1},
     'recession': {'growth': 0.5, 'risk': 1.6, 'capital_efficiency': 1.4, 'strategic_importance': 0.5},
     'stagflation': {'growth': 0.8, 'risk': 1.0, 'capital_efficiency': 1.3, 'strategic_importance': 0.9},
-}
-
-macro_probabilities = {
-    'bull': 0.50,
-    'recession': 0.30,
-    'stagflation': 0.20
 }
 
 df = pd.read_csv('scores.csv')
@@ -92,23 +87,11 @@ for strat_name, strat_w in strategies.items():
     for macro_name, macro_m in macro_conditions.items():
         utility_vector = get_blended_utility(strat_w, macro_m, df)
         
-        prob = macro_probabilities[macro_name]
-        expected_utility_vector += prob * utility_vector
-        
         res_ind = minimize(portfolio_objective, x_init, args=(Sigma, utility_vector, RISK_AVERSION),
                            method='SLSQP', bounds=bounds, constraints=constraints)
         
         if res_ind.success:
             clean_dollars = enforce_tranches(res_ind.x, TOTAL_BUDGET, TRANCHE_SIZE, MAX_CHECK_SIZE)
             master_matrix[f"{strat_name}_in_{macro_name}"] = clean_dollars
-
-    res_exp = minimize(portfolio_objective, x_init, args=(Sigma, expected_utility_vector, RISK_AVERSION),
-                       method='SLSQP', bounds=bounds, constraints=constraints)
-    
-    if res_exp.success:
-        clean_expected_dollars = enforce_tranches(res_exp.x, TOTAL_BUDGET, TRANCHE_SIZE, MAX_CHECK_SIZE)
-        master_matrix[f'{strat_name}_expected'] = clean_expected_dollars
-    else:
-        print(f'Warning: Expected allocation calculation failed for {strat_name}')
 
 master_matrix.to_csv('simulation.csv', index=False)
