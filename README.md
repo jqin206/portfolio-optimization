@@ -11,9 +11,9 @@ This pipeline computes growth, risk, capital efficiency, and strategic importanc
 
 ## Structure
 
-### 1. Data generator (`generator.py`)
+### 1. Data generator (`model/generator.py`)
 - Produces a mock portfolio of 20 startups with the following data.
-- Output stored in `mock_portfolio.csv`.
+- Output stored in `portfolio/mock_portfolio.csv`.
 
 | Field | Description |
 | --- | --- |
@@ -41,11 +41,11 @@ This pipeline computes growth, risk, capital efficiency, and strategic importanc
 | `competitive_diff` | Competitive differentiation |
 
 
-### 2. Data normalizer (`normalizer.py`)
+### 2. Data normalizer (`model/normalizer.py`)
 - Normalizes portfolio data to z-scores.
 - Calculates growth, risk, capital efficiency, and strategic importance composite scores (1-10) from raw data using Principal Component Analysis (PCA).
 - Computes the portfolio's semi-covariance matrix.
-- Outputs stored in `pca_factor_weights.csv`, `scores.csv`, and `semicovariance.csv`.
+- Outputs stored in `portfolio/pca_factor_weights.csv`, `portfolio/scores.csv`, and `portfolio/semicovariance.csv`.
 
 | Score | Description | Fields |
 | --- | --- | --- |
@@ -54,7 +54,7 @@ This pipeline computes growth, risk, capital efficiency, and strategic importanc
 | Capital efficiency | Measures how effectively a startup converts its cash flows into enterprise value | `monthly_burn_rate_k`, `ltv_cac`, `payback_months`, `rev_per_emp`, `gross_margin` |
 | Strategic importance | Measures a startup's systemic value to larger STEALTH portfolio | `strat_alignment`, `strat_synergies`, `strat_positioning`, `future_fundraising`, `competitive_diff` |
 
-### 3. Portfolio optimizer (`optimizer.py`)
+### 3. Portfolio optimizer (`model/optimizer.py`)
 - Recommends capital allocation for 6 different strategies in 3 market conditions using sequential least squares programming.
 - Output stored in `simulation.csv`.
 
@@ -67,7 +67,47 @@ This pipeline computes growth, risk, capital efficiency, and strategic importanc
 | `baseline` | Balanced: equal weights across all composite metrics. |
 
 
-### 4. Data visualizer (`visualizer.py`)
-- Creates heatmaps for the startup composite scores (`startup_raw_metrics_heatmap.png`) and different allocation scenarios (`portfolio_allocation_heatmap.png`).
-- Create a bubble chart to visualize the startup composite scores (`startup_quadrant_bubble_chart.png`).
+### 4. Data visualizer (`model/visualizer.py`)
+- Creates heatmaps for the startup composite scores (`portfolio/startup_raw_metrics_heatmap.png`) and different allocation scenarios (`portfolio_allocation_heatmap.png`).
+- Create a bubble chart to visualize the startup composite scores (`portfolio/startup_quadrant_bubble_chart.png`).
 - Visualizes the risk vs. return tradeoff for each allocation strategy in different market conditions (`risk_vs_return.png`).
+
+## Quick Start
+### 1. Create and activate a Python virtual environment.
+```bash
+# MacOS/Linux
+python3 -m venv .venv
+source .venv/bin/activate
+
+# Windows
+python -m venv .venv
+# PowerShell
+.\.venv\Scripts\Activate.ps1
+# Command Prompt
+.\.venv\Scripts\activate.bat
+```
+
+### 2. Install dependencies in the virtual environment.
+```bash
+pip install -r requirements.txt
+```
+
+### 3. Generate mock portfolio.
+```bash
+python model/generator.py
+```
+
+### 4. Construct composite metric scores and semicovariance matrix.
+```bash
+python model/normalizer.py
+```
+
+### 5. Run the optimizer.
+```bash
+python model/optimizer.py
+```
+
+### 6. Visualize results.
+```bash
+python model/visualizer.py
+```

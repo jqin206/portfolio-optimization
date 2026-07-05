@@ -3,7 +3,7 @@ import pandas as pd
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from sklearn.decomposition import PCA
 
-df = pd.read_csv('mock_portfolio.csv')
+df = pd.read_csv('portfolio/mock_portfolio.csv')
 num_startups = len(df)
 
 factors = {
@@ -70,12 +70,10 @@ for factor, cols in factors.items():
 
     final_scores_df[f'{factor}_score'] = scaled_scores.flatten().round(2)
 
-print(final_scores_df.head())
-final_scores_df.to_csv('scores.csv', index=False)
+final_scores_df.to_csv('portfolio/scores.csv', index=False)
 
 weights_df = pd.DataFrame(weights_records)
-print(weights_df.head())
-weights_df.to_csv("pca_factor_weights.csv", index=False)
+weights_df.to_csv("portfolio/pca_factor_weights.csv", index=False)
 
 # Create semi-covariance matrix
 all_metric_cols = []
@@ -103,5 +101,4 @@ semi_covariance_df = pd.DataFrame(
     index=df['id'],   
     columns=df['id']  
 )
-print(semi_covariance_df.head())
-semi_covariance_df.to_csv('semicovariance.csv', index=True)
+semi_covariance_df.to_csv('portfolio/semicovariance.csv', index=True)

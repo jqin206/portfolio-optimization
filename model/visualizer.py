@@ -3,7 +3,7 @@ import seaborn as sns
 import pandas as pd
 import numpy as np
 
-df_scores = pd.read_csv('scores.csv')
+df_scores = pd.read_csv('portfolio/scores.csv')
 
 metrics_cols = ['growth_score', 'risk_score', 'capital_efficiency_score', 'strategic_importance_score']
 display_cols = ['Growth Score', 'Risk Score', 'Capital Efficiency', 'Strategic Importance']
@@ -28,7 +28,7 @@ ax1.set_xlabel("Operational Metrics", fontsize=12)
 plt.xticks(rotation=15, ha='right', rotation_mode='anchor')
 
 plt.tight_layout()
-plt.savefig("startup_raw_metrics_heatmap.png", dpi=300)
+plt.savefig("portfolio/startup_raw_metrics_heatmap.png", dpi=300)
 plt.close()
 
 
@@ -77,12 +77,12 @@ ax2.legend(
 )
 
 plt.tight_layout()
-plt.savefig("startup_quadrant_bubble_chart.png", dpi=300)
+plt.savefig("portfolio/startup_quadrant_bubble_chart.png", dpi=300)
 plt.close()
 
 
-df_raw = pd.read_csv('mock_portfolio.csv')
-cov_matrix = pd.read_csv('semicovariance.csv', index_col=0).values
+df_raw = pd.read_csv('portfolio/mock_portfolio.csv')
+cov_matrix = pd.read_csv('portfolio/semicovariance.csv', index_col=0).values
 df_sim = pd.read_csv('simulation.csv')
 
 modifiers = {

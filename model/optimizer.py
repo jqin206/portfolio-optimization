@@ -17,7 +17,7 @@ macro_conditions = {
     'stagflation': {'growth': 0.8, 'risk': 1.0, 'capital_efficiency': 1.3, 'strategic_importance': 0.9},
 }
 
-df = pd.read_csv('scores.csv')
+df = pd.read_csv('portfolio/scores.csv')
 num_startups = len(df)
 
 TOTAL_BUDGET = 10_000_000
@@ -35,7 +35,7 @@ strategy_risk_aversion = {
     'baseline': 2.5
 }
 
-Sigma = pd.read_csv("semicovariance.csv", index_col=0).values
+Sigma = pd.read_csv("portfolio/semicovariance.csv", index_col=0).values
 
 constraints = {'type': 'eq', 'fun': lambda x: np.sum(x) - 1.0}
 bounds = [(MIN_WEIGHT, MAX_WEIGHT) for _ in range(num_startups)]
