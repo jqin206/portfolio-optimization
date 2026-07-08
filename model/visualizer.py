@@ -268,20 +268,27 @@ plt.tight_layout()
 plt.savefig("risk_vs_return.png", dpi=300)
 plt.close()
 
+regimes = {
+    'neutral': 'Neutral Market',
+    'bull': 'Bull Market',
+    'recession': 'Recession',
+    'stagflation': 'Stagflation',
+}
 
-neutral_cols = [c for c in df_sim.columns if 'neutral' in c]
-df_sim_indexed = df_sim.set_index('id')
-heatmap_data = round(df_sim[neutral_cols] / 10_000_000.0, 3)
-y_labels = [c.replace('_in_neutral', '').strip() for c in heatmap_data.columns]
-heatmap_data.columns = y_labels
+for suffix, display_name in regimes.items():
+    regime_cols = [c for c in df_sim.columns if f'_in_{suffix}' in c]
+    heatmap_data = round(df_sim[regime_cols] / 10_000_000.0, 3)
+    y_labels = [c.replace(f'_in_{suffix}', '').strip() for c in heatmap_data.columns]
+    heatmap_data.columns = y_labels
 
-plt.figure(figsize=(18, 5))
-sns.heatmap(heatmap_data.T, annot=True, fmt=".3f", cmap="YlGnBu", cbar_kws={'label': 'Allocated Capital ($)'}, square=True)
+    plt.figure(figsize=(18, 5))
+    sns.heatmap(heatmap_data.T, annot=True, fmt=".3f", cmap="YlGnBu",
+                cbar_kws={'label': 'Allocated Capital ($)'}, square=True)
 
-plt.title("Portfolio Capital Allocation in Neutral Market", fontsize=14, fontweight='bold', pad=15)
-plt.xlabel("Startup ID", fontsize=12, labelpad=10)
-plt.ylabel("Strategies", fontsize=12)
+    plt.title(f"Portfolio Capital Allocation in {display_name}", fontsize=14, fontweight='bold', pad=15)
+    plt.xlabel("Startup ID", fontsize=12, labelpad=10)
+    plt.ylabel("Strategies", fontsize=12)
 
-plt.tight_layout()
-plt.savefig("regime_graphs/portfolio_allocation_neutral_heatmap.png", dpi=300)
-plt.close()
+    plt.tight_layout()
+    plt.savefig(f"regime_graphs/portfolio_allocation_{suffix}_heatmap.png", dpi=300)
+    plt.close()

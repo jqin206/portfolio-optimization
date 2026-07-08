@@ -80,6 +80,10 @@ def enforce_tranches(raw_weights, total_budget, tranche_size, max_check):
             
     return tranche_allocations
 
+def run_optimization(Sigma, utility_vector, risk_aversion, bounds, x_init):
+    return minimize(portfolio_objective, x_init, args=(Sigma, utility_vector, risk_aversion),
+                           method='SLSQP', bounds=bounds, constraints=constraints)
+
 for strat_name, strat_w in strategies.items():
     RISK_AVERSION = strategy_risk_aversion[strat_name]
     expected_utility_vector = np.zeros(num_startups)
@@ -87,8 +91,7 @@ for strat_name, strat_w in strategies.items():
     for macro_name, macro_m in macro_conditions.items():
         utility_vector = get_blended_utility(strat_w, macro_m, df)
         
-        res_ind = minimize(portfolio_objective, x_init, args=(Sigma, utility_vector, RISK_AVERSION),
-                           method='SLSQP', bounds=bounds, constraints=constraints)
+        res_ind = run_optimization(Sigma, utility_vector, RISK_AVERSION, bounds, x_init)
         
         if res_ind.success:
             clean_dollars = enforce_tranches(res_ind.x, TOTAL_BUDGET, TRANCHE_SIZE, MAX_CHECK_SIZE)
