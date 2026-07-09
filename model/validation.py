@@ -159,9 +159,9 @@ def run_validation():
                 all_runs += runs
                 all_summaries.append(summary)
 
-    pd.DataFrame(all_runs).to_csv('portfolio/validation_runs.csv', index=False)
+    pd.DataFrame(all_runs).to_csv('validation/validation_runs.csv', index=False)
     summary_df = pd.DataFrame(all_summaries)
-    summary_df.to_csv('portfolio/validation_summary.csv', index=False)
+    summary_df.to_csv('validation/validation_summary.csv', index=False)
 
     flagged = summary_df[(summary_df['spearman_corr'] < 0.8) | (summary_df['pct_budget_reallocated'] > 0.15)]
     if not flagged.empty:
