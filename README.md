@@ -14,19 +14,17 @@ This pipeline computes growth, risk, capital efficiency, and strategic importanc
 
 1. **Startup data generation**: provide raw startup business metrics to input into the model.
 
-2. **Composite scoring**: compute growth, risk, capital efficiency, and strategic importance scores for each startup based on its raw metrics using PCA.
+2. **Composite scoring via PCA**: compute growth, risk, capital efficiency, and strategic importance scores for each startup based on its raw metrics.
 
-3. **Portfolio correlation assessment**: produce a semi-covariance matrix to be used by the optimizer.
+3. **Semi-covariance matrix**: assess how startups' downside risk move together so that the optimizer avoids overconcentrating capital in startups that lose value at the same time.
 
-4. **Strategy definition**: define four allocation strategies, each one weighing a different composite score by 0.7 and the others by 0.1.
+4. **Strategy and market condition definition**: define 5 allocation strategies and 4 macroeconomic scenarios to be tested by the optimizer.
 
-5. **Market condition definition**: define four macroeconomic scenarios by different combinations of composite score modifiers.
+5. **Optimization**: compute the optimal portfolio allocation for each strategy in each market condition by maximizing return and minimizing risk based on composite scores, semi-covariance matrix, risk-aversion, constraints, and initial allocation guess.
 
-6. **Optimization**: use Sequential Least Squares Programming (SLSQP) to find the optimal portfolio allocation for each strategy in each market condition by maximizing utility and minimizing variance based on composite scores, semi-covariance matrix, risk-aversion, constraints, and initial guess.
+6. **Final allocation**: recommends proportion of capital that should be allocated to each startup in the portfolio for each strategy and market condition combination in both CSV format and as a heatmap.
 
-7. **Final allocation**: recommends proportion of capital that should be allocated to each startup in the portfolio for each strategy and market condition combination in both CSV format and as a heatmap.
-
-8. **Validation**: analyze the model's sensitivity to pre-determined parameters, including generated startup metrics, initial allocation guesses, maximum allocation constraints, and risk-aversion values.
+7. **Validation**: analyze the model's sensitivity to assumptions, including generated startup metrics, initial allocation guesses, allocation constraints, and risk-aversion values.
 
 
 ## Structure
@@ -75,7 +73,7 @@ This pipeline computes growth, risk, capital efficiency, and strategic importanc
 | Strategic importance | Measures a startup's systemic value to larger STEALTH portfolio | `strat_alignment`, `strat_synergies`, `strat_positioning`, `future_fundraising`, `competitive_diff` |
 
 ### 3. Portfolio optimizer (`model/optimizer.py`)
-- Recommends capital allocation for 6 different strategies in 3 market conditions using sequential least squares programming.
+- Recommends capital allocation for 5 different strategies in 4 market conditions using sequential least squares programming.
 - Output stored in `simulation.csv`.
 
 | Strategy | Description | 
