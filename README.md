@@ -12,6 +12,7 @@ This pipeline computes growth, risk, capital efficiency, and strategic importanc
 
 ## Methodology
 
+```mermaid
 flowchart TD
     A["Raw startup metrics<br/>(generator.py)"] --> B["Composite scores<br/>Growth · Risk · Capital Efficiency · Strategic Importance<br/>(PCA)"]
     A --> C["Semi-covariance matrix<br/>(downside risk correlation)"]
@@ -24,6 +25,7 @@ flowchart TD
     E --> F["Optimal capital allocation<br/>per strategy × market condition"]
     F --> G["Outputs: CSV + heatmaps"]
     F --> H["Validation:<br/>sensitivity to assumptions"]
+```
 
 1. **Startup data generation**: provide raw startup business metrics to input into the model.
 
