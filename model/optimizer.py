@@ -17,9 +17,6 @@ macro_conditions = {
     'stagflation': {'growth': 0.8, 'risk': 1.0, 'capital_efficiency': 1.3, 'strategic_importance': 0.9},
 }
 
-df = pd.read_csv('portfolio/scores.csv')
-num_startups = len(df)
-
 TOTAL_BUDGET = 10_000_000
 MIN_WEIGHT = 0.005
 MAX_WEIGHT = 0.15
@@ -35,19 +32,18 @@ strategy_risk_aversion = {
     'baseline': 2.5
 }
 
-Sigma = pd.read_csv("portfolio/semicovariance.csv", index_col=0).values
-
 constraints = {'type': 'eq', 'fun': lambda x: np.sum(x) - 1.0}
-bounds = [(MIN_WEIGHT, MAX_WEIGHT) for _ in range(num_startups)]
-
-x_init = np.ones(num_startups) * (1.0 / num_startups)
-
-master_matrix = pd.DataFrame({'id': df['id']})
 
 def portfolio_objective(x, Sigma, utility_vector, risk_aversion):
     portfolio_variance = np.dot(x.T, np.dot(Sigma, x))
     portfolio_utility = np.dot(utility_vector, x)
     return -portfolio_utility + (risk_aversion * portfolio_variance)
+
+def make_bounds(num_startups, min_weight, max_weight):
+    return [(min_weight, max_weight) for _ in range(num_startups)]
+
+def random_x_init(num_startups, seed):
+    return np.random.default_rng(seed).dirichlet(np.ones(num_startups))
 
 def get_blended_utility(strat_w, macro_m, df_source):
     combined_raw = {factor: strat_w[factor] * macro_m[factor] for factor in strat_w}
@@ -84,17 +80,28 @@ def run_optimization(Sigma, utility_vector, risk_aversion, bounds, x_init):
     return minimize(portfolio_objective, x_init, args=(Sigma, utility_vector, risk_aversion),
                            method='SLSQP', bounds=bounds, constraints=constraints)
 
-for strat_name, strat_w in strategies.items():
-    RISK_AVERSION = strategy_risk_aversion[strat_name]
-    expected_utility_vector = np.zeros(num_startups)
-    
-    for macro_name, macro_m in macro_conditions.items():
-        utility_vector = get_blended_utility(strat_w, macro_m, df)
-        
-        res_ind = run_optimization(Sigma, utility_vector, RISK_AVERSION, bounds, x_init)
-        
-        if res_ind.success:
-            clean_dollars = enforce_tranches(res_ind.x, TOTAL_BUDGET, TRANCHE_SIZE, MAX_CHECK_SIZE)
-            master_matrix[f"{strat_name}_in_{macro_name}"] = clean_dollars
+if __name__ == "__main__":
+    df = pd.read_csv('portfolio/scores.csv')
+    num_startups = len(df)
 
-master_matrix.to_csv('simulation.csv', index=False)
+    Sigma = pd.read_csv("portfolio/semicovariance.csv", index_col=0).values
+
+    bounds = make_bounds(num_startups, MIN_WEIGHT, MAX_WEIGHT)
+    x_init = np.ones(num_startups) * (1.0 / num_startups)  
+
+    master_matrix = pd.DataFrame({'id': df['id']})
+
+    for strat_name, strat_w in strategies.items():
+        RISK_AVERSION = strategy_risk_aversion[strat_name]
+        expected_utility_vector = np.zeros(num_startups)
+        
+        for macro_name, macro_m in macro_conditions.items():
+            utility_vector = get_blended_utility(strat_w, macro_m, df)
+            
+            res_ind = run_optimization(Sigma, utility_vector, RISK_AVERSION, bounds, x_init)
+            
+            if res_ind.success:
+                clean_dollars = enforce_tranches(res_ind.x, TOTAL_BUDGET, TRANCHE_SIZE, MAX_CHECK_SIZE)
+                master_matrix[f"{strat_name}_in_{macro_name}"] = clean_dollars
+
+    master_matrix.to_csv('simulation.csv', index=False)
