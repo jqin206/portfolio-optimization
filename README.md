@@ -22,7 +22,7 @@ flowchart TD
     D1["5 allocation strategies"] --> E
     D2["4 market conditions"] --> E
 
-    E --> F["Optimal capital allocation<br/>per strategy × market condition"]
+    E --> F["Optimal capital allocation<br/>per strategy and market condition combination"]
     F --> G["Validation"]
 ```
 
