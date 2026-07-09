@@ -12,20 +12,6 @@ This pipeline computes growth, risk, capital efficiency, and strategic importanc
 
 ## Methodology
 
-```mermaid
-flowchart TD
-    A["Raw startup metrics"] --> B["Composite scores"]
-    A --> C["Semi-covariance matrix"]
-
-    B --> E["Optimizer"]
-    C --> E
-    D1["5 allocation strategies"] --> E
-    D2["4 market conditions"] --> E
-
-    E --> F["Optimal capital allocation<br/>per strategy and market condition combination"]
-    F --> G["Validation"]
-```
-
 1. **Startup data generation**: provide raw startup business metrics to input into the model.
 
 2. **Composite scoring via PCA**: compute growth, risk, capital efficiency, and strategic importance scores for each startup based on its raw metrics.
@@ -40,6 +26,20 @@ flowchart TD
 
 7. **Validation**: analyze the model's sensitivity to assumptions, including generated startup metrics, initial allocation guesses, allocation constraints, and risk-aversion values.
 
+### Model Diagram
+```mermaid
+flowchart TD
+    A["Raw startup metrics"] --> B["Composite scores"]
+    A --> C["Semi-covariance matrix"]
+
+    B --> E["Optimizer"]
+    C --> E
+    D1["5 allocation strategies"] --> E
+    D2["4 market conditions"] --> E
+
+    E --> F["Optimal capital allocation<br/>per strategy and market condition combination"]
+    F --> G["Validation"]
+```
 
 ## Structure
 
