@@ -104,4 +104,4 @@ if __name__ == "__main__":
                 clean_dollars = enforce_tranches(res_ind.x, TOTAL_BUDGET, TRANCHE_SIZE, MAX_CHECK_SIZE)
                 master_matrix[f"{strat_name}_in_{macro_name}"] = clean_dollars
 
-    master_matrix.to_csv('simulation.csv', index=False)
+    master_matrix.to_csv('portfolio/simulation.csv', index=False)

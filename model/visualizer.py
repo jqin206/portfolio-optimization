@@ -265,7 +265,7 @@ ax.set_title("Portfolio Risk vs. Return", fontsize=13, fontweight='bold', pad=15
 ax.grid(True, linestyle='--', alpha=0.3)
 
 plt.tight_layout()
-plt.savefig("risk_vs_return.png", dpi=300)
+plt.savefig("regime_graphs/risk_vs_return.png", dpi=300)
 plt.close()
 
 regimes = {
