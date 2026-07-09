@@ -9,6 +9,26 @@ This pipeline computes growth, risk, capital efficiency, and strategic importanc
 
 **Maximum allocation per startup:** $1.5 million (15% of capital pool)
 
+
+## Methodology
+
+1. **Startup data generation**: provide raw startup business metrics to input into the model.
+
+2. **Composite scoring**: compute growth, risk, capital efficiency, and strategic importance scores for each startup based on its raw metrics using PCA.
+
+3. **Portfolio correlation assessment**: produce a semi-covariance matrix to be used by the optimizer.
+
+4. **Strategy definition**: define four allocation strategies, each one weighing a different composite score by 0.7 and the others by 0.1.
+
+5. **Market condition definition**: define four macroeconomic scenarios by different combinations of composite score modifiers.
+
+6. **Optimization**: use Sequential Least Squares Programming (SLSQP) to find the optimal portfolio allocation for each strategy in each market condition by maximizing utility and minimizing variance based on composite scores, semi-covariance matrix, risk-aversion, constraints, and initial guess.
+
+7. **Final allocation**: recommends proportion of capital that should be allocated to each startup in the portfolio for each strategy and market condition combination in both CSV format and as a heatmap.
+
+8. **Validation**: analyze the model's sensitivity to pre-determined parameters, including generated startup metrics, initial allocation guesses, maximum allocation constraints, and risk-aversion values.
+
+
 ## Structure
 
 ### 1. Data generator (`model/generator.py`)
