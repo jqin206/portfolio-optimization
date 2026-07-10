@@ -2,6 +2,9 @@ import numpy as np
 import pandas as pd
 from scipy.stats import spearmanr
 
+import matplotlib.pyplot as plt
+import seaborn as sns
+
 from generator import generate_portfolio
 from normalizer import compute_scores, factors
 from optimizer import (
@@ -10,14 +13,16 @@ from optimizer import (
     TOTAL_BUDGET, MIN_WEIGHT, MAX_WEIGHT, TRANCHE_SIZE,
 )
 
+TOP_K = 5
+
 BASELINE_SEED = 42
 
 NOISE_SEEDS = [21, 22, 23, 24, 25]
 NOISE_SCALE = 0.05
 
 INIT_SEEDS = [11, 12, 13, 14, 15]
-MAX_WEIGHT_GRID = [0.10, 0.15, 0.20, 0.25]
-RISK_AVERSION_MULTIPLIERS = [0.5, 0.75, 1.0, 1.25, 1.5]
+MAX_WEIGHT_GRID = [0.10, 0.20, 0.25]
+RISK_AVERSION_MULTIPLIERS = [0.5, 0.75, 1.25, 1.5]
 
 metric_cols = [c for cols in factors.values() for c in cols]
 
@@ -90,7 +95,8 @@ def sensitivity_to_metric_noise(strat_name, macro_name, strat_w, macro_m, risk_a
         res = run_optimization(Sigma, utility_vector, risk_aversion, bounds, x_init)
         dollars = enforce_tranches(res.x, TOTAL_BUDGET, TRANCHE_SIZE, MAX_WEIGHT * TOTAL_BUDGET)
         runs += [_row('metric_noise', seed, strat_name, macro_name, i, d, res.success) for i, d in zip(ids, dollars)]
-        metrics.append(compare_to_baseline(baseline_dollars, dollars) | {'converged': res.success})
+        metrics.append(compare_to_baseline(baseline_dollars, dollars) | {'converged': res.success}
+        )
     return runs, _summarize('metric_noise', strat_name, macro_name, metrics)
 
 def sensitivity_to_init(strat_name, macro_name, Sigma, utility_vector, risk_aversion,
@@ -99,9 +105,9 @@ def sensitivity_to_init(strat_name, macro_name, Sigma, utility_vector, risk_aver
     for seed, x_init in alt_inits.items():
         res = run_optimization(Sigma, utility_vector, risk_aversion, bounds, x_init)
         dollars = enforce_tranches(res.x, TOTAL_BUDGET, TRANCHE_SIZE, MAX_WEIGHT * TOTAL_BUDGET)
-        runs += [_row('init_seed', seed, strat_name, macro_name, i, d, res.success) for i, d in zip(ids, dollars)]
+        runs += [_row('x_init', seed, strat_name, macro_name, i, d, res.success) for i, d in zip(ids, dollars)]
         metrics.append(compare_to_baseline(baseline_dollars, dollars) | {'converged': res.success})
-    return runs, _summarize('init_seed', strat_name, macro_name, metrics)
+    return runs, _summarize('x_init', strat_name, macro_name, metrics)
 
 def sensitivity_to_cap(strat_name, macro_name, Sigma, utility_vector, risk_aversion,
                         x_init, num_startups, baseline_dollars, ids):
@@ -163,9 +169,58 @@ def run_validation():
     summary_df = pd.DataFrame(all_summaries)
     summary_df.to_csv('validation/validation_summary.csv', index=False)
 
-    flagged = summary_df[(summary_df['spearman_corr'] < 0.8) | (summary_df['pct_budget_reallocated'] > 0.15)]
+    flagged = summary_df[(summary_df['pct_budget_reallocated'] > summary_df['pct_budget_reallocated'].quantile(0.90))]   # fewer than 3 of your top 5 picks survived
     if not flagged.empty:
-        print("High-sensitivity combos:\n", flagged)
+        print("High-sensitivity combos:\n", flagged[['axis', 'strategy', 'regime', 'pct_budget_reallocated']])
 
 if __name__ == "__main__":
     run_validation()
+
+    summary = pd.read_csv('validation/validation_summary.csv')
+
+    strategy_order = ['growth', 'risk', 'efficiency', 'strategic', 'baseline']
+    regime_order = ['neutral', 'bull', 'recession', 'stagflation']
+    axes_to_show = ['metric_noise', 'x_init', 'max_weight', 'risk_aversion']
+
+    # (column, cmap, dollar-scale divisor, diverging?, title)
+    metric_specs = [
+        ('spearman_corr',          'Blues',   1,    False, 'Spearman Correlation'),
+        ('pct_budget_reallocated', 'Blues',   1,    False, 'Proportion of Budget Reallocated'),
+        ('mean_abs_delta',         'Blues',   1000, False, 'Mean Change in Capital (Thousands of Dollars) Allocated Per Startup'),
+        ('max_abs_delta',          'Blues',   1000, False, 'Max Change in Capital (Thousands of Dollars) Allocated Per Startup'),
+        ('hhi_drift',              'RdBu_r',  1,    True,  'Herfindahl-Hirschman Index Drift'),
+    ]
+
+    for col_name, cmap, divisor, diverging, title in metric_specs:
+        fig, axs = plt.subplots(1, len(axes_to_show), figsize=(22, 5), sharey=True)
+
+        all_values = summary[summary['axis'].isin(axes_to_show)][col_name] / divisor
+        shared_vmax = all_values.max()
+        shared_absmax = all_values.abs().max()   # for the diverging case
+
+        for col, axis_name in enumerate(axes_to_show):
+            ax = axs[col]
+            pivot = (
+                summary[summary['axis'] == axis_name]
+                .pivot(index='strategy', columns='regime', values=col_name)
+                .reindex(index=strategy_order, columns=regime_order)
+            ) / divisor
+
+            heat_kwargs = dict(
+                annot=True, fmt=".3f" if diverging else ".2f", cmap=cmap,
+                ax=ax, cbar=(col == len(axes_to_show) - 1), linewidths=0.5, linecolor='white'
+            )
+            if diverging:
+                heat_kwargs['vmin'], heat_kwargs['vmax'], heat_kwargs['center'] = -shared_absmax, shared_absmax, 0
+            else:
+                heat_kwargs['vmin'], heat_kwargs['vmax'] = 0, shared_vmax
+
+            sns.heatmap(pivot, **heat_kwargs)
+            ax.set_title(axis_name, fontsize=10)
+            ax.set_xlabel('')
+            ax.set_ylabel('strategy' if col == 0 else '')
+
+        fig.suptitle(title, fontweight='bold')
+        plt.tight_layout()
+        plt.savefig(f'validation/{col_name}_heatmap.png', dpi=300)
+        plt.close()

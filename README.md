@@ -98,11 +98,17 @@ flowchart TD
 | `strategic` | Strategic importance focused: prioritize startups building core infrastructure that support a broader ecosystem. |
 | `baseline` | Balanced: equal weights across all composite metrics. |
 
-
 ### 4. Data visualizer (`model/visualizer.py`)
-- Creates heatmaps for the startup composite scores (`portfolio/startup_raw_metrics_heatmap.png`) and different allocation scenarios (`portfolio_allocation_heatmap.png`).
+- Creates heatmaps for the startup composite scores (`portfolio/startup_raw_metrics_heatmap.png`).
 - Create a bubble chart to visualize the startup composite scores (`portfolio/startup_quadrant_bubble_chart.png`).
+-  Plots heatmaps for the different allocation scenarios (`portfolio_allocation_heatmap.png`)
 - Visualizes the risk vs. return tradeoff for each allocation strategy in different market conditions (`risk_vs_return.png`).
+
+### 5. Model validation (`model/validation.py`)
+- Runs optimizer under different parameter values.
+- Outputs result of each run (`validation/validation_runs.csv`).
+- Compares resulting allocations to original portfolio allocation using Spearman correlation, concentration drift, and proportion of budget reallocated (`validation/validation_summary.csv`).
+- Creates heatmaps for each evaluation metric, located in `validation/`.
 
 ## Quick Start
 ### 1. Create and activate a Python virtual environment.
@@ -142,4 +148,9 @@ python model/optimizer.py
 ### 6. Visualize results.
 ```bash
 python model/visualizer.py
+```
+
+### 7. Validate model.
+```bash
+python model/validation.py
 ```
